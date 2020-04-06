@@ -92,7 +92,7 @@ class ChessBoard:
         if p.type == 'Pawn':
             p.is_1st_moov = False
 
-        self.board[orval] = 0
+        self.board[orval] = orval
         self.board[toval] = p
 
     def is_game_end(self):

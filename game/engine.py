@@ -41,8 +41,8 @@ KW = VECTOR_W * 2
 
 
 class Engine:
-    def __init__(self, color='WHITE'):
-        self.username = 'e'
+    def __init__(self, name='e', color='WHITE'):
+        self.username = name
         self.color = color
         self.current_board = None
 
