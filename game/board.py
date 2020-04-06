@@ -22,7 +22,6 @@ _COORD = [
 class ChessBoard:
     def __init__(self):
         self._limit_x = self._limit_y = 8
-        # self.board = [[0] * self._limit_x] * self._limit_y
         self.board = [i for i in range(self._limit_x * self._limit_y)]
 
         self.player1 = None
@@ -63,8 +62,11 @@ class ChessBoard:
             if '2' in _COORD[i] or '7' in _COORD[i]:
                 self.board[i] = Pawn(_COORD[i][:1], _COORD[i][1:], color)
 
-    def get_piece(self, position):
-        return self.board[_COORD.index(position)]
+    def get_piece_by_coord(self, coord):
+        return self.board[_COORD.index(coord)]
+
+    def get_piece_by_value(self, value):
+        return self.board[value]
 
     def moov(self, origin, to):
         orval = _COORD.index(origin)
@@ -73,6 +75,9 @@ class ChessBoard:
         p = self.board[orval]
         p.x = to[:1]
         p.y = to[1:]
+
+        if p.type == 'Pawn':
+            p.is_1st_moov = False
 
         self.board[orval] = 0
         self.board[toval] = p

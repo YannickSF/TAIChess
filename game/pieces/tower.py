@@ -1,5 +1,5 @@
 
-from board.object import Pieces
+from game.pieces.object import Pieces
 
 
 class Tower(Pieces):
