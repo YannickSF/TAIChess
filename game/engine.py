@@ -98,6 +98,10 @@ class Engine:
                 return x + (vector * p)
         return None
 
+    def static_compute_moovements(self, board, piece):
+        self.current_board = board
+        return self.compute_moovements(piece)
+
     def compute_moovements(self, piece):
         p = 1
         vector = []
@@ -125,16 +129,21 @@ class Engine:
                       KW + VECTOR_N, KW + VECTOR_S]
 
         if piece.type == 'Pawn':
+            if piece.colors == self.current_board.top_side:
+                vec = VECTOR_S
+            if piece.colors == self.current_board.bot_side:
+                vec = VECTOR_N
+
             vector = [VECTOR_NE, VECTOR_NW]
             # 1 case
-            possibilities += self.compute_vector(piece.x + piece.y, VECTOR_N, p)
+            possibilities += self.compute_vector(piece.x + piece.y, vec, p)
             # 2 eats
             for v in vector:
                 value = self.compute_vector(piece.x + piece.y, v, p)
                 possibilities += value
             # 1st moov
             if piece.is_1st_moov:
-                possibilities += [self.compute_vector_to(piece.x + piece.y, VECTOR_N, 2)]
+                possibilities += [self.compute_vector_to(piece.x + piece.y, vec, 2)]
             return possibilities
 
         for v in vector:

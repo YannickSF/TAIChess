@@ -1,10 +1,13 @@
 
+from .pieces.object import Pieces
 from .pieces.king import King
 from .pieces.queen import Queen
 from .pieces.knight import Knight
 from .pieces.fool import Fool
 from .pieces.tower import Tower
 from .pieces.pawn import Pawn
+
+from .engine import Engine
 
 
 _COORD = [
@@ -27,8 +30,13 @@ class ChessBoard:
         self.player1 = None
         self.player2 = None
 
+        self.top_side = None
+        self.bot_side = None
+
+        self._e = Engine(self)
+
     @staticmethod
-    def init_guard(x, y, color):
+    def _init_guard(x, y, color):
         guard = {'a': Tower(x, y, color),
                  'b': Knight(x, y, color),
                  'c': Fool(x, y, color),
@@ -52,15 +60,20 @@ class ChessBoard:
             return None
 
         color = self.player1.color
+        self.top_side = color
         for i in range(len(self.board)):
             if i > len(self.board) / 2:
                 color = self.player2.color
+                self.bot_side = color
 
             if '1' in _COORD[i] or '8' in _COORD[i]:
-                self.board[i] = self.init_guard(_COORD[i][:1], _COORD[i][1:], color)
+                self.board[i] = self._init_guard(_COORD[i][:1], _COORD[i][1:], color)
 
             if '2' in _COORD[i] or '7' in _COORD[i]:
                 self.board[i] = Pawn(_COORD[i][:1], _COORD[i][1:], color)
+
+        # print(self.top_side)
+        # print(self.bot_side)
 
     def get_piece_by_coord(self, coord):
         return self.board[_COORD.index(coord)]
@@ -81,3 +94,12 @@ class ChessBoard:
 
         self.board[orval] = 0
         self.board[toval] = p
+
+    def is_game_end(self):
+        for p in range(len(self.board)):
+            if self.board[p] is Pieces and self.board[p].type == 'King':
+                sts = self._e.compute_moovements(self.board[p])
+                if len(sts) > 0:
+                    return True
+                else:
+                    return False
