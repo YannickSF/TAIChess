@@ -33,6 +33,11 @@ class ChessBoard:
         self.top_side = None
         self.bot_side = None
 
+        self.side_turn = None
+        self.history = []
+        self.player1_moovs = []
+        self.player2_moovs = []
+
         self._e = Engine(self)
 
     @staticmethod
@@ -72,9 +77,6 @@ class ChessBoard:
             if '2' in _COORD[i] or '7' in _COORD[i]:
                 self.board[i] = Pawn(_COORD[i][:1], _COORD[i][1:], color)
 
-        # print(self.top_side)
-        # print(self.bot_side)
-
     def get_piece_by_coord(self, coord):
         return self.board[_COORD.index(coord)]
 
@@ -97,7 +99,7 @@ class ChessBoard:
 
     def is_game_end(self):
         for p in range(len(self.board)):
-            if self.board[p] is Pieces and self.board[p].type == 'King':
+            if self.board[p].__class__ is King:
                 sts = self._e.compute_moovements(self.board[p])
                 if len(sts) > 0:
                     return True

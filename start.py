@@ -1,39 +1,51 @@
 
+import time
 from game.board import ChessBoard
 from players.player import Player
-from game.engine import Engine
+from players.ai import AI
 
 
-def party_pvp():
-    b = ChessBoard()
-    p1 = Player('y', 'RED')
-    p2 = Player('s', 'BLACK')
-
-    b.set_player(p1, p2)
-    b.initialize()
-
+def print_board(b):
     for i in range(len(b.board)):
         print(b.board[i])
 
 
-def party_pvm():
+def party(player_one, player_two):
     b = ChessBoard()
+    b.set_player(player_one, player_two)
 
-    p1 = Player('y', 'RED')
-    e = Engine()  # WHITE by default
-
-    b.set_player(p1, e)
+    print('==== INITIALIZE =====')
     b.initialize()
-    e.current_board = b
+    print_board(b)
 
-    for i in range(len(b.board)):
-        print(b.board[i])
+    starter = True
+    if b.bot_side == b.player2.color:
+        starter = False
 
-    # print(e.compute_moovements(b.get_piece_by_coord('d4')))
+    loop = 0
+    print("===START===")
+
+    while b.is_game_end():
+        print("LOOP => " + loop)
+        if starter:
+            b.player1.play()
+            b.player2.play()
+        else:
+            b.player2.play()
+            b.player1.play()
+
+        loop += 1
+        print_board(b)
+        print('==============================')
+
+    return None
 
 
 def console():
-    pass
+    print("Choose opponent : ")
+    p1 = Player('y', 'RED')
+    ai = AI('sylys')
+    party(p1, ai)
 
 
 if __name__ == '__main__':

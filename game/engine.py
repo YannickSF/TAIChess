@@ -1,5 +1,11 @@
 
 from game.pieces.object import Pieces
+from game.pieces.king import King
+from game.pieces.queen import Queen
+from game.pieces.knight import Knight
+from game.pieces.fool import Fool
+from game.pieces.tower import Tower
+from game.pieces.pawn import Pawn
 
 
 _COORD = [
@@ -41,10 +47,8 @@ KW = VECTOR_W * 2
 
 
 class Engine:
-    def __init__(self, name='e', color='WHITE'):
-        self.username = name
-        self.color = color
-        self.current_board = None
+    def __init__(self, board=None):
+        self.current_board = board
 
     @staticmethod
     def get_coord_position(position):
@@ -61,46 +65,59 @@ class Engine:
 
     def is_piece(self, value):
         is_piece = self.current_board.get_piece_by_value(value)
-        if is_piece is Pieces:
+        if is_piece.__class__ in [King, Queen, Knight, Fool, Tower, Pawn]:
             return True
         return False
 
-    def is_ennemie(self, piece):
-        if piece.color != self.color:
+    @staticmethod
+    def is_enemy(piece_to_try, piece):
+        if piece_to_try.color != piece.color:
             return True
         return False
 
-    def compute_vector(self, x, vector, p=1):
+    def compute_vector(self, x, vector, p=1, piece=None):
         res = []
+        find_piece = False
         x = self.get_coord_position(x)
 
         if p != 1:
             for i in range(1, p):
                 if not self.is_border((x + (vector * i))):
+                    if find_piece:
+                        break
+
                     if not self.is_piece(x + (vector * i)):
                         res.append(x + (vector * i))
                     else:
-                        break
+                        piece_to_try = self.current_board.get_piece_by_value(x + (vector * i))
+                        if self.is_enemy(piece_to_try, piece):
+                            res.append(x + (vector * i))
         else:
             for i in range(p):
                 if not self.is_border(x + vector):
+                    if find_piece:
+                        break
+
                     if not self.is_piece(x + (vector * i)):
                         res.append(x + vector)
                     else:
-                        break
+                        piece_to_try = self.current_board.get_piece_by_value(x + (vector * i))
+                        if self.is_enemy(piece_to_try, piece):
+                            res.append(x + (vector * i))
+                            find_piece = True
         return res
 
-    def compute_vector_to(self, x, vector, p):
+    def compute_vector_to(self, x, vector, p, piece=None):
         x = self.get_coord_position(x)
 
         if not self.is_border(x + (vector * p)):
             if not self.is_piece(x + (vector * p)):
                 return x + (vector * p)
+            else:
+                piece_to_try = self.current_board.get_piece_by_value(x + (vector * p))
+                if self.is_enemy(piece_to_try, piece):
+                    return x + (vector * p)
         return None
-
-    def static_compute_moovements(self, board, piece):
-        self.current_board = board
-        return self.compute_moovements(piece)
 
     def compute_moovements(self, piece):
         p = 1
@@ -131,21 +148,30 @@ class Engine:
         if piece.type == 'Pawn':
             if piece.colors == self.current_board.top_side:
                 vec = VECTOR_S
+                vector = [VECTOR_SE, VECTOR_SW]
             if piece.colors == self.current_board.bot_side:
                 vec = VECTOR_N
+                vector = [VECTOR_NE, VECTOR_NW]
 
-            vector = [VECTOR_NE, VECTOR_NW]
             # 1 case
-            possibilities += self.compute_vector(piece.x + piece.y, vec, p)
+            possibilities += self.compute_vector(piece.x + piece.y, vec, p, piece)
             # 2 eats
             for v in vector:
-                value = self.compute_vector(piece.x + piece.y, v, p)
+                value = self.compute_vector(piece.x + piece.y, v, p, piece)
                 possibilities += value
             # 1st moov
             if piece.is_1st_moov:
-                possibilities += [self.compute_vector_to(piece.x + piece.y, vec, 2)]
+                possibilities += [self.compute_vector_to(piece.x + piece.y, vec, piece)]
             return possibilities
 
         for v in vector:
-            possibilities += self.compute_vector(piece.x + piece.y, v, p)
+            possibilities += self.compute_vector(piece.x + piece.y, v, p, piece)
         return possibilities
+
+    def static_compute_moovements(self, board, piece):
+        self.current_board = board
+        return self.compute_moovements(piece)
+
+    def is_threat_king(self):
+        # permet de savoir si une pièce menace le roi ennemie.
+        pass
