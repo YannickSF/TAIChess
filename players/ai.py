@@ -8,9 +8,6 @@ class AI(Engine):
         self.name = name
         self.color = color
 
-    def _evaluate_score(self):
-        pass
-
     def brain(self):
         pass
 

@@ -50,6 +50,9 @@ class Engine:
     def __init__(self, board=None):
         self.current_board = board
 
+    def get_coord_piece_on_board(self, piece):
+        return self.get_board_position(self.get_coord_position(piece.x.join(piece.y)))
+
     @staticmethod
     def get_coord_position(position):
         return _COORD.index(position)
@@ -62,6 +65,11 @@ class Engine:
         if position < 0 or position > 63 or self.get_board_position(position) == -1:
             return True
         return False
+
+    def side_troops(self, color):
+        for i in range(len(self.current_board)):
+            if self.current_board[i] is not int and self.current_board[i].color == color:
+                yield self.current_board[i]
 
     def is_piece(self, value):
         is_piece = self.current_board.get_piece_by_value(value)
@@ -172,6 +180,70 @@ class Engine:
         self.current_board = board
         return self.compute_moovements(piece)
 
-    def is_threat_king(self):
-        # permet de savoir si une pièce menace le roi ennemie.
-        pass
+    def can_pwnd(self, eat_piece, a_piece):
+        t_moovs = self.compute_moovements(a_piece)
+        if self.get_coord_piece_on_board(eat_piece) in t_moovs:
+            return True
+        return False
+
+    def king_escapes(self, king):
+        def compare_lists(lst_ref, lst_nmy):
+            res = []
+
+            for v in range(len(lst_ref)):
+                for w in range(len(lst_nmy)):
+                    if lst_ref[v] == lst_nmy[w]:
+                        res.append(lst_ref[v])
+            return res
+
+        king_moovs = self.compute_moovements(king)
+        for p in range(len(self.current_board)):
+            if self.current_board[p].color != king.color:
+                cpt_moovs = self.compute_moovements(self.current_board[p])
+                px = compare_lists(king_moovs, cpt_moovs)
+
+                for i in range(len(px)):
+                    king_moovs.remove(px[i])
+
+        return king_moovs
+
+    def is_threat_king(self, king, piece):
+        king_coord = self.get_coord_piece_on_board(king)
+        piece_mv = self.compute_moovements(piece)
+
+        if king_coord in piece_mv:
+            return True
+
+        return False
+
+    def is_king_owned(self, king, board):
+        is_king_threat = False
+        is_king_had_escape = True
+        is_king_owned = False
+
+        threater = None
+
+        for p in range(len(board)):
+            if board[p].__class__ is not King and board[p].__class__ is not int:
+
+                if board[p].color != king.color:
+                    # vérifier si le roi est menacé
+                    if not is_king_threat:
+                        is_king_threat = self.is_threat_king(king, board[p])
+                        if is_king_threat:
+                            threater = board[p]
+
+                    # calculs des échapatoires du roi
+                    if is_king_threat:
+                        king_escape = self.king_escapes(king)
+                        if not len(king_escape) > 0:
+                            is_king_had_escape = False
+                            is_king_owned = True
+
+                    # vérifier si un allié peu libérer le roi.
+                    if is_king_had_escape:
+                        for n in self.side_troops(king.color):
+                            if self.can_pwnd(threater, n):
+                                is_king_owned = False
+
+        return is_king_owned

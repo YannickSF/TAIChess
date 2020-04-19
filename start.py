@@ -25,7 +25,7 @@ def party(player_one, player_two):
     loop = 0
     print("===START===")
 
-    while b.is_game_end():
+    while not b.is_game_end():
         print("LOOP => " + loop)
         if starter:
             b.player1.play()

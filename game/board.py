@@ -100,8 +100,6 @@ class ChessBoard:
     def is_game_end(self):
         for p in range(len(self.board)):
             if self.board[p].__class__ is King:
-                sts = self._e.compute_moovements(self.board[p])
-                if len(sts) > 0:
+                if self._e.is_king_owned(self.board[p], self.board):
                     return True
-                else:
-                    return False
+        return False
